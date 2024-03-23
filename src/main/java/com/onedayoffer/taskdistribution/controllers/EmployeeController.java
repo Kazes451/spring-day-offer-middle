@@ -5,13 +5,14 @@ import com.onedayoffer.taskdistribution.DTO.TaskDTO;
 import com.onedayoffer.taskdistribution.DTO.TaskStatus;
 import com.onedayoffer.taskdistribution.services.EmployeeService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping(path = "employees")
+@RequestMapping(path = "/employees")
 @AllArgsConstructor
 public class EmployeeController {
 
@@ -19,33 +20,39 @@ public class EmployeeController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<EmployeeDTO> getEmployees(@RequestParam(required = false) String sort) {
+    // можно было бы пойти дальше и выбирать параметры сортировки, а также постранично получать результаты
+    public List<EmployeeDTO> getEmployees(@RequestParam(required = false, defaultValue = "ASC") Sort.Direction sort) {
         return employeeService.getEmployees(sort);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public EmployeeDTO getOneEmployee(@PathVariable Integer id) {
         return employeeService.getOneEmployee(id);
     }
 
-    @GetMapping("{id}/tasks")
+    @GetMapping("/{id}/tasks")
     @ResponseStatus(HttpStatus.OK)
     public List<TaskDTO> getTasksByEmployeeId(@PathVariable Integer id) {
         return employeeService.getTasksByEmployeeId(id);
     }
 
-    @PatchMapping("{id}/tasks/{taskId}/status")
+    @PatchMapping("/{id}/tasks/{taskId}/status")
     @ResponseStatus(HttpStatus.OK)
-    public void changeTaskStatus(@PathVariable Integer id
-                                          /* other PathVariable and RequestParam */ ) {
-        //TaskStatus status = TaskStatus.valueOf(newStatus);
-        //employeeService.changeTaskStatus ...
+    //можно задать заранее разрешенные статусы @Schema(
+    //                    type = "string",
+    //                    allowableValues = {
+    //                            "IN_PROGRESS",
+    //                            "DONE"
+    //                    }
+    //            )
+    public void changeTaskStatus(@PathVariable Integer id, @PathVariable Integer taskId, @RequestParam("newStatus") TaskStatus newStatus) {
+        employeeService.changeTaskStatus(id, taskId, newStatus);
     }
 
-    @PostMapping("...")
+    @PostMapping("/{employeeId}/tasks")
     @ResponseStatus(HttpStatus.CREATED)
-    public void postNewTask(/* some params */) {
-        //employeeService.postNewTask ...
+    public void postNewTask(@PathVariable Integer employeeId, @RequestBody TaskDTO newTask) {
+        employeeService.postNewTask(employeeId, newTask);
     }
 }
